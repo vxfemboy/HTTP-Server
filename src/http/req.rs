@@ -24,7 +24,7 @@ impl TryFrom<&[u8]> for Request {
     }
 }
 
-fn gnxtwrd(req: &str) -> (&str, &str) {
+fn gnxtwrd(req: &str) -> Option<(&str, &str)> {
     unimplemented!()
 }
 
