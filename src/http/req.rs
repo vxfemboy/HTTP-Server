@@ -13,6 +13,20 @@ pub struct Request<'buf> {
     methd: Methd,
 }
 
+impl<'buf> Request<'buf> {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn methd(&self) -> &Methd {
+        &self.methd
+    }
+
+    pub fn query_string(&self) -> Option<&QStr> {
+        self.query_string.as_ref()
+    }
+}
+
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseErr;
 
