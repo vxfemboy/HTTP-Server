@@ -1,20 +1,22 @@
 use super::methd::{Methd, MethdErr};
+use super::{QStr};
 use std::convert::TryFrom;
 use std::str;
 use std::str::Utf8Error;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
+#[derive(Debug)]
 pub struct Request<'buf> {
     path: &'buf str,
-    query_string: Option<&'buf str>,
+    query_string: Option<QStr<'buf>>,
     methd: Methd,
 }
 
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseErr;
 
-    // GET /test?querystr=1 HTTP/1.1\r\n...HEADERS...
+    // GET /test?querystr=char&bleh=1 HTTP/1.1\r\n...HEADERS...
     fn try_from(buf: &'buf [u8]) -> Result<Request<'buf>, Self::Error> {
         let req = str::from_utf8(buf)?;
 
@@ -30,7 +32,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
 
         let mut query_string = None;
         if let Some(i) = path.find('?') {
-            query_string = Some(&path[i+1..]);
+            query_string = Some(QStr::from(&path[i+1..]));
             path = &path[..1];
         }
 

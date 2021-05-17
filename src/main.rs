@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serv::Serv;
 use http::Request;
 use http::Methd;
