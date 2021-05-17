@@ -1,5 +1,5 @@
 pub use req::Request;
-pub use methd::Method;
+pub use methd::Methd;
 pub use req::ParseErr;
 
 pub mod req;

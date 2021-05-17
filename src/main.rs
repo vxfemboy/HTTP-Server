@@ -1,6 +1,6 @@
 use serv::Serv;
 use http::Request;
-use http::Method;
+use http::Methd;
 
 mod serv;
 mod http;

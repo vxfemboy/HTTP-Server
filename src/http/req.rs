@@ -1,31 +1,44 @@
-use super::methd::Method;
+use super::methd::{Methd, MethdErr};
 use std::convert::TryFrom;
 use std::str;
 use std::str::Utf8Error;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 
-pub struct Request {
-    path: String,
-    query_string: Option<String>,
-    method: Method,
+pub struct Request<'buf> {
+    path: &'buf str,
+    query_string: Option<&'buf str>,
+    methd: Methd,
 }
 
-impl TryFrom<&[u8]> for Request {
+impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
     type Error = ParseErr;
 
-    // GET /test HTTP/1.1\r\n...HEADERS...
-    fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+    // GET /test?querystr=1 HTTP/1.1\r\n...HEADERS...
+    fn try_from(buf: &'buf [u8]) -> Result<Request<'buf>, Self::Error> {
         let req = str::from_utf8(buf)?;
 
         let (methd, req) = gnxtwrd(req).ok_or(ParseErr::InvalidRequest)?;
-        let (path, req) = gnxtwrd(req).ok_or(ParseErr::InvalidRequest)?;
+        let (mut path, req) = gnxtwrd(req).ok_or(ParseErr::InvalidRequest)?;
         let (protocol, _) = gnxtwrd(req).ok_or(ParseErr::InvalidRequest)?;
         
         if protocol != "HTTP/1.1" {
             return Err(ParseErr::InvalidProtocol);
         }
-        unimplemented!()
+        
+        let methd: Methd = methd.parse()?;
+
+        let mut query_string = None;
+        if let Some(i) = path.find('?') {
+            query_string = Some(&path[i+1..]);
+            path = &path[..1];
+        }
+
+        Ok(Self {
+            path,
+            query_string,
+            methd,
+        })
     }
 }
 
@@ -65,6 +78,12 @@ impl ParseErr {
             Self::InvalidProtocol => "InvalidProtocol",
             Self::InvalidMethod => "InvalidMethod",
         }
+    }
+}
+
+impl From<MethdErr> for ParseErr {
+    fn from(_: MethdErr) -> Self {
+        Self::InvalidEncoding
     }
 }
 
